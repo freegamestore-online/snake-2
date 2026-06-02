@@ -369,7 +369,7 @@ export default function App() {
           width: "100%",
           maxWidth: "min(90vw, 760px)",
           aspectRatio: "1 / 1",
-          maxHeight: "calc(100vh - 140px)",
+          maxHeight: "calc(100svh - 140px)",
           paddingInline: 12,
           boxSizing: "border-box",
         }}>
