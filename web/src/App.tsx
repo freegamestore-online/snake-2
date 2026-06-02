@@ -21,11 +21,11 @@ const newFood = (snake: Point[]): Point => {
 
 const COLORS = {
   bg: "var(--bg, #0a0a0f)",
-  grid: "#12121a",
-  head: "var(--accent, #00ffaa)",
-  headGlow: "#00ffaa88",
-  body: "#00cc88",
-  tail: "#007755",
+  grid: "#0f1910",
+  head: "#32c432",
+  headGlow: "#32c43288",
+  body: "#22aa22",
+  tail: "#1b7a1b",
   food: "#ff4466",
   foodGlow: "#ff446688",
   text: "var(--ink, #e0ffe0)",
@@ -79,16 +79,36 @@ export default function App() {
       const alpha = Math.round((0.4 + 0.6 * (1 - t)) * 255).toString(16).padStart(2, "0");
       ctx.fillStyle = i === s.length - 1 ? COLORS.tail : COLORS.body + alpha;
 
-      const pad = i === s.length - 1 ? 5 : 3;
-      const size = CELL - pad * 2;
-      const rx = seg.x * CELL + pad;
-      const ry = seg.y * CELL + pad;
+      if (i === s.length - 1) {
+        const cx = seg.x * CELL + CELL / 2;
+        const cy = seg.y * CELL + CELL / 2;
+        const dx = seg.x - prev.x;
+        const dy = seg.y - prev.y;
+        const half = CELL / 2 - 4;
+        const side = CELL / 2 - 6;
 
-      ctx.beginPath();
-      ctx.roundRect(rx, ry, size, size, i === s.length - 1 ? 6 : 4);
-      ctx.fill();
+        ctx.beginPath();
+        if (dx !== 0) {
+          ctx.moveTo(cx + dx * half, cy);
+          ctx.lineTo(cx - dx * side, cy - side);
+          ctx.lineTo(cx - dx * side, cy + side);
+        } else {
+          ctx.moveTo(cx, cy + dy * half);
+          ctx.lineTo(cx - side, cy - dy * side);
+          ctx.lineTo(cx + side, cy - dy * side);
+        }
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        const pad = 3;
+        const size = CELL - pad * 2;
+        const rx = seg.x * CELL + pad;
+        const ry = seg.y * CELL + pad;
 
-      if (i < s.length - 1) {
+        ctx.beginPath();
+        ctx.roundRect(rx, ry, size, size, 4);
+        ctx.fill();
+
         const cx = Math.min(seg.x, prev.x) * CELL + (seg.x === prev.x ? pad : 0);
         const cy = Math.min(seg.y, prev.y) * CELL + (seg.y === prev.y ? pad : 0);
         const cw = seg.x === prev.x ? size : CELL;
@@ -101,7 +121,7 @@ export default function App() {
     const head = s[0]!;
     ctx.shadowColor = COLORS.headGlow;
     ctx.shadowBlur = 18;
-    ctx.fillStyle = "#00ffaa";
+    ctx.fillStyle = COLORS.head;
     ctx.beginPath();
     ctx.roundRect(head.x * CELL + 2, head.y * CELL + 2, CELL - 4, CELL - 4, 6);
     ctx.fill();
@@ -367,7 +387,7 @@ export default function App() {
         <div style={{
           position: "relative",
           width: "100%",
-          maxWidth: "min(90vw, 760px)",
+          maxWidth: "min(80vw, 560px)",
           aspectRatio: "1 / 1",
           maxHeight: "calc(100svh - 140px)",
           paddingInline: 12,
@@ -381,9 +401,9 @@ export default function App() {
               display: "block",
               width: "100%",
               height: "100%",
-              border: "1px solid #1a2a1a",
+              border: "1px solid #122212",
               borderRadius: 4,
-              boxShadow: "0 0 40px #00ffaa11",
+              boxShadow: "0 0 40px #22aa2211",
               touchAction: "none",
             }}
           />
