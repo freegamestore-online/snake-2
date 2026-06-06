@@ -38,6 +38,7 @@ export default function App() {
   const [best, setBest] = useState(0);
   const [status, setStatus] = useState<"idle" | "playing" | "dead">("idle");
   const [paused, setPaused] = useState(false);
+  const [showOnScreenControls, setShowOnScreenControls] = useState(false);
 
   const snake = useRef<Point[]>([{ x: 12, y: 12 }]);
   const dir = useRef<Dir>("RIGHT");
@@ -213,7 +214,7 @@ export default function App() {
       const holdTimestamp = holdStart.current ?? touchHoldStart.current;
       const held = holdTimestamp !== null && (performance.now() - holdTimestamp) >= 1000;
       const speedFactor = held ? 0.55 : 1;
-      const tick = Math.max(40, (TICK + snake.current.length * 5) * speedFactor);
+      const tick = Math.max(40, (TICK + snake.current.length * 2) * speedFactor);
 
       if (ts - lastTick.current > tick) {
         lastTick.current = ts;
@@ -269,6 +270,14 @@ export default function App() {
     canvas.height = H * dpr;
     const ctx = canvas.getContext("2d");
     if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 640px), (hover: none)");
+    const update = () => setShowOnScreenControls(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {
@@ -344,7 +353,7 @@ export default function App() {
     };
   }, [reset, setDirection, handlePlayPause, status]);
 
-  const instructionText = "Swipe or use Arrow keys to steer. Hold to accelerate.";
+  const instructionText = "Swipe, tap arrows, or use Arrow keys to steer. Hold to accelerate.";
 
   const rules = (
     <div style={{ fontSize: 12, textAlign: "center", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -433,6 +442,81 @@ export default function App() {
         <div style={{ width: "100%", textAlign: "center", fontSize: 12, color: "#334433", letterSpacing: 1.2, paddingInline: 12, boxSizing: "border-box" }}>
           {instructionText}
         </div>
+
+        {showOnScreenControls && (
+          <div style={{ width: "100%", maxWidth: 240, margin: "0 auto", display: "grid", gap: 6, gridTemplateColumns: "repeat(3, minmax(56px, 1fr))", justifyItems: "center", alignItems: "center" }}>
+            <div />
+            <button
+              type="button"
+              onClick={() => setDirection("UP")}
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                border: "1px solid #1f4f22",
+                background: "#122212",
+                color: "#e0ffe0",
+                fontSize: 24,
+                cursor: "pointer",
+              }}
+              aria-label="Up"
+            >
+              ↑
+            </button>
+            <div />
+            <button
+              type="button"
+              onClick={() => setDirection("LEFT")}
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                border: "1px solid #1f4f22",
+                background: "#122212",
+                color: "#e0ffe0",
+                fontSize: 24,
+                cursor: "pointer",
+              }}
+              aria-label="Left"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              onClick={() => setDirection("DOWN")}
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                border: "1px solid #1f4f22",
+                background: "#122212",
+                color: "#e0ffe0",
+                fontSize: 24,
+                cursor: "pointer",
+              }}
+              aria-label="Down"
+            >
+              ↓
+            </button>
+            <button
+              type="button"
+              onClick={() => setDirection("RIGHT")}
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                border: "1px solid #1f4f22",
+                background: "#122212",
+                color: "#e0ffe0",
+                fontSize: 24,
+                cursor: "pointer",
+              }}
+              aria-label="Right"
+            >
+              →
+            </button>
+          </div>
+        )}
 
         {/* Store link
         <a
