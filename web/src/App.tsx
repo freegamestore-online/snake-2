@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GameShell, GameTopbar, GameAuth } from "@freegamestore/games";
+import { useHighScore } from "./hooks/useHighScore";
 
 const CELL = 20;
 const COLS = 24;
@@ -7,6 +8,10 @@ const ROWS = 24;
 const W = COLS * CELL;
 const H = ROWS * CELL;
 const TICK = 120;
+
+/** Move interval in ms: faster as the snake grows, faster still while a direction is held. */
+export const tickMs = (length: number, held: boolean) =>
+  Math.max(40, Math.max(60, TICK - length * 2) * (held ? 0.55 : 1));
 
 type Dir = "UP" | "DOWN" | "LEFT" | "RIGHT";
 type Point = { x: number; y: number };
@@ -35,7 +40,7 @@ const COLORS = {
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [score, setScore] = useState(0);
-  const [best, setBest] = useState(0);
+  const [best, updateBest] = useHighScore("snake2_best");
   const [status, setStatus] = useState<"idle" | "playing" | "dead">("idle");
   const [paused, setPaused] = useState(false);
   const [showOnScreenControls, setShowOnScreenControls] = useState(false);
@@ -200,8 +205,6 @@ export default function App() {
     if (d !== opposite[dir.current]) {
       nextDir.current = d;
     }
-    holdStart.current = performance.now();
-    holdDir.current = d;
     if (status === "idle" || status === "dead") {
       reset();
     }
@@ -213,8 +216,7 @@ export default function App() {
     if (!pausedRef.current) {
       const holdTimestamp = holdStart.current ?? touchHoldStart.current;
       const held = holdTimestamp !== null && (performance.now() - holdTimestamp) >= 1000;
-      const speedFactor = held ? 0.55 : 1;
-      const tick = Math.max(40, (TICK + snake.current.length * 2) * speedFactor);
+      const tick = tickMs(snake.current.length, held);
 
       if (ts - lastTick.current > tick) {
         lastTick.current = ts;
@@ -229,14 +231,14 @@ export default function App() {
 
           if (next.x < 0 || next.x >= COLS || next.y < 0 || next.y >= ROWS) {
             setStatus("dead");
-            setBest(b => Math.max(b, scoreRef.current));
+            updateBest(scoreRef.current);
             animRef.current = requestAnimationFrame(gameLoop);
             return;
           }
 
           if (snake.current.some(s => s.x === next.x && s.y === next.y)) {
             setStatus("dead");
-            setBest(b => Math.max(b, scoreRef.current));
+            updateBest(scoreRef.current);
             animRef.current = requestAnimationFrame(gameLoop);
             return;
           }
@@ -255,7 +257,7 @@ export default function App() {
     }
 
     animRef.current = requestAnimationFrame(gameLoop);
-  }, [status, draw]);
+  }, [status, draw, updateBest]);
 
   useEffect(() => {
     animRef.current = requestAnimationFrame(gameLoop);
@@ -292,6 +294,10 @@ export default function App() {
       const d = map[e.key];
       if (!d) return;
       e.preventDefault();
+      // Keyboard auto-repeat must not restart the hold timer
+      if (e.repeat) return;
+      holdStart.current = performance.now();
+      holdDir.current = d;
       setDirection(d);
     };
 
@@ -517,16 +523,6 @@ export default function App() {
             </button>
           </div>
         )}
-
-        {/* Store link
-        <a
-          href="https://freegamestore.online"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ fontSize: 11, color: "#334433", letterSpacing: 1, textDecoration: "none" }}
-        >
-          Built for freegamestore.online
-        </a> */}
       </div>
     </GameShell>
   );
