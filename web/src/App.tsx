@@ -523,6 +523,16 @@ export default function App() {
             </button>
           </div>
         )}
+
+        {/* Store link
+        <a
+          href="https://freegamestore.online"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: 11, color: "#334433", letterSpacing: 1, textDecoration: "none" }}
+        >
+          Built for freegamestore.online
+        </a> */}
       </div>
     </GameShell>
   );
